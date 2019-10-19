@@ -2,7 +2,6 @@ from collections import Counter
 from math import ceil
 from argparse import ArgumentParser, Namespace, FileType
 
-
 import numpy as np
 from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
@@ -33,6 +32,7 @@ def calculate(args) -> None:
     min_distance, min_i, min_j = None, None, None
     max_distance, max_i, max_j = None, None, None
     hist = Counter()
+    precision = 10
 
     with args.source:
         matrix = np.loadtxt(args.source, delimiter=',')
@@ -46,14 +46,14 @@ def calculate(args) -> None:
                 min_distance, min_i, min_j = distance, i, j + i + 1
             if max_distance is None or distance > max_distance:
                 max_distance, max_i, max_j = distance, i, j + i + 1
-            hist[ceil(distance * 10) / 10] += 1
+            hist[ceil(distance * precision) / precision] += 1
 
     labels, values = zip(*sorted(hist.items(), key=lambda _: _[0]))
 
-    plt.bar([_ for _ in range(len(values))], values, 1)
-    plt.xticks([_ + 0.5 for _ in range(len(labels))], labels, rotation='vertical', fontsize='6')
-    extra = Rectangle((0, 0), 1, 1, fc="w", fill=False, edgecolor='none', linewidth=0)
-    plt.legend([extra, ],
+    width = 1
+    plt.bar(list(range(len(values))), values, width)
+    plt.xticks([_ + 0.5 * width for _ in range(len(labels))], labels, rotation='vertical', fontsize='6')
+    plt.legend([Rectangle((0, 0), 1, 1, fc="w", fill=False, edgecolor='none', linewidth=0), ],
                ("MIN distance {} ({} v {})\nMAX distance {} ({} v {})".
                 format(min_distance, min_i, min_j, max_distance, max_i, max_j), ))
     plt.savefig(args.destination)
