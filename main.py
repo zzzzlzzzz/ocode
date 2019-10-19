@@ -23,15 +23,20 @@ def calculate(args) -> None:
     :param args: CL-arguments
     :return: None
     """
-    results = []
+    min_distance, min_i, min_j = None, None, None
+    max_distance, max_i, max_j = None, None, None
+    hist = Counter()
+
     array = np.loadtxt(args.source, delimiter=',')
     for i, row_a in enumerate(array[: len(array) - 1]):
         for j, row_b in enumerate(array[i + 1:]):
-            results.append([i, j + i + 1, np.linalg.norm(row_a - row_b)])
-    minimal = min(results, key=lambda _: _[2])
-    maximal = max(results, key=lambda _: _[2])
+            distance = np.linalg.norm(row_a - row_b)
+            if min_distance is None or distance < min_distance:
+                min_distance, min_i, min_j = distance, i, j
+            if max_distance is None or distance > max_distance:
+                max_distance, max_i, max_j = distance, i, j
+            hist[ceil(distance * 10) / 10] += 1
 
-    hist = Counter(ceil(_[2] * 10) / 10 for _ in results)
     labels, values = zip(*sorted(hist.items(), key=lambda _: _[0]))
 
     plt.bar([_ for _ in range(len(values))], values, 1)
@@ -39,7 +44,7 @@ def calculate(args) -> None:
     extra = Rectangle((0, 0), 1, 1, fc="w", fill=False, edgecolor='none', linewidth=0)
     plt.legend([extra, ],
                ("MIN distance {} ({} v {})\nMAX distance {} ({} v {})".
-                format(minimal[2], minimal[0], minimal[1], maximal[2], maximal[0], maximal[1]), ))
+                format(min_distance, min_i, min_j, max_distance, max_i, max_j), ))
     plt.savefig(args.destination)
 
 
